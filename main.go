@@ -4,7 +4,9 @@ import (
 	"employee-api/models"
 	"encoding/json"
 	"log"
+	"math/rand"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/mux"
 )
@@ -34,21 +36,59 @@ func main() {
 }
 
 func getEmployees(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(employees)
 }
 
 func getEmployee(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
 
+	for _, employee := range employees {
+		if employee.ID == params["id"] {
+			json.NewEncoder(w).Encode(employee)
+			return
+		}
+	}
 }
 
 func createEmployee(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	var employee models.Employee
 
+	_ = json.NewDecoder(r.Body).Decode(&employee)
+	employee.ID = strconv.Itoa(rand.Intn(10000000))
+	employees = append(employees, employee)
+
+	json.NewEncoder(w).Encode(employee)
 }
 
 func updateEmployee(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
 
+	for index, employee := range employees {
+		if employee.ID == params["id"] {
+			employees = append(employees[:index], employees[index+1:]...)
+			_ = json.NewDecoder(r.Body).Decode(&employee)
+			employee.ID = params["id"]
+			employees = append(employees, employee)
+
+			json.NewEncoder(w).Encode(employee)
+		}
+	}
+	json.NewEncoder(w).Encode(employees)
 }
 
 func deleteEmployee(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
 
+	for index, employee := range employees {
+		if employee.ID == params["id"] {
+			employees = append(employees[:index], employees[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(employees)
 }
