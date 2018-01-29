@@ -65,10 +65,30 @@ func createEmployee(w http.ResponseWriter, r *http.Request) {
 
 func updateEmployee(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
 
+	for index, employee := range employees {
+		if employee.ID == params["id"] {
+			employees = append(employees[:index], employees[index+1:]...)
+			_ = json.NewDecoder(r.Body).Decode(&employee)
+			employee.ID = params["id"]
+			employees = append(employees, employee)
+
+			json.NewEncoder(w).Encode(employee)
+		}
+	}
+	json.NewEncoder(w).Encode(employees)
 }
 
 func deleteEmployee(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
+	params := mux.Vars(r)
 
+	for index, employee := range employees {
+		if employee.ID == params["id"] {
+			employees = append(employees[:index], employees[index+1:]...)
+			break
+		}
+	}
+	json.NewEncoder(w).Encode(employees)
 }
